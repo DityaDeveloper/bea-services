@@ -24,6 +24,7 @@ class AuthController extends Controller
         $this->middleware('auth:api', [
             'except' => [
                 'login',
+		'loginDummy',
             ],
 
         ]);
@@ -45,7 +46,7 @@ class AuthController extends Controller
     }
 
     public function login(Request $request)
-    {
+    {	
         $validator = $this->validation('login', $request);
 
         if ($validator->fails()) {
@@ -53,20 +54,45 @@ class AuthController extends Controller
         }
 
         $input = $request->all();
-        $email = $input['email'];
-        $pass = $input['password'];
+        $email = $request->input('email');
+        $pass = $request->input('password');
+	#$email = "dewianggreni06@yahoo.co.id";
+	#$pass = "P@ssw0rd";
 
+	#con seleksi db
+	$uriSelectionApi = "http://app1.cikiniproject.id:8080/Login";
+	$reqSelectionData = [
+		'username' => $email,
+		'password' => $pass
+	];
+
+        $client = new \GuzzleHttp\Client();
+
+        $reqSelectioncb = $client->request('POST', $uriSelectionApi, [
+            'headers' => [
+            'Content-Type' => 'application/json',
+        ],
+            'body' => json_encode($reqSelectionData)
+        ]);
+	
+	if($reqSelectioncb->getStatusCode() == 200){ 
+ 	
+	$userdata = json_decode( $reqSelectioncb->getBody(), true);
+		if($userdata ['token'] != null){
+	 	 $ssoStatus = "selection person"; 
+		} else{
+	 	 $ssoStatus = "unselection person";
+		}
+	}else{
+	 $ssoStatus = "unknown";
+	 return $this->core->setResponse('error', "sso status $ssoStatus ", NULL, false , 203  );
+	}
+	
         $authenticate = UserLogin::where('username', $email)->first();
 
         if( !$authenticate)
         {
             return $this->core->setResponse('error', 'user not found', NULL, false , 203  );
-        }
-
-        $authPw = $authenticate['password'];
-
-        if($authPw != $pass){
-            return $this->core->setResponse('error', "email & password incorrect", NULL, false , 203  );
         }
 
         $user = UserLogin::with(['userRole', 'userProfile'])->where('username', $email)->first();
@@ -76,9 +102,71 @@ class AuthController extends Controller
         }
 
         $token = \Auth::login($user['userProfile']);
-        return $this->respondWithToken($token, 'login');
+        return $this->respondWithToken($token, 'login', $ssoStatus);
 
     }
+
+    public function loginDummy(Request $request)
+    {
+       	#$validator = $this->validation('login', $request);
+
+        #if ($validator->fails()) {
+        #    return $this->core->setResponse('error', $validator->messages()->first(), NULL, false , 400  );
+        #}
+
+        #$input = $request->all();
+        #$email = $request->input('email');
+        #$pass = $request->input('password');
+	$email = "colley.windya@gmail.com";
+	$pass = "pass123";
+
+	#con seleksi db
+	$uriSelectionApi = "http://app1.cikiniproject.id:8080/Login";
+	$reqSelectionData = [
+		'username' => $email,
+		'password' => $pass
+	];
+
+        $client = new \GuzzleHttp\Client();
+
+        $reqSelectioncb = $client->request('POST', $uriSelectionApi, [
+            'headers' => [
+            'Content-Type' => 'application/json',
+        ],
+            'body' => json_encode($reqSelectionData)
+        ]);
+	
+	if($reqSelectioncb->getStatusCode() == 200){ 
+ 	
+	$userdata = json_decode( $reqSelectioncb->getBody(), true);
+		if($userdata ['token'] != null){
+	 	 $ssoStatus = "selection person"; 
+		} else{
+	 	 $ssoStatus = "unselection person";
+		}
+	}else{
+	 $ssoStatus = "unknown";
+	 return $this->core->setResponse('error', "sso status $ssoStatus, incorrect email & password ", NULL, false , 203  );
+	}
+	
+        $authenticate = UserLogin::where('username', $email)->first();
+
+        if( !$authenticate)
+        {
+            return $this->core->setResponse('error', 'user not found', NULL, false , 203  );
+        }
+
+        $user = UserLogin::with(['userRole', 'userProfile'])->where('username', $email)->first();
+
+        if( !$user){
+            return $this->core->setResponse('error', 'user not found', NULL, false , 203  );
+        }
+
+        $token = \Auth::login($user['userProfile']);
+        return $this->respondWithToken($token, 'login', $ssoStatus);
+
+    }
+
 
     public function profile()
     {
@@ -122,11 +210,12 @@ class AuthController extends Controller
         return Validator::make($request->all(), $validator);
     }
 
-    protected function respondWithToken($token, $action = null)
+    protected function respondWithToken($token, $action = null, $ssostatus = 'unknown')
     {
         $data = [
             'access_token' => $token,
             'token_type' => 'bearer',
+	    'sso_status' => $ssostatus,
             'expires_in' => auth()->factory()->getTTL() * config('auth.jwt.expires_in', 2880),
         ];
 

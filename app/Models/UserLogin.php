@@ -9,12 +9,12 @@ class UserLogin extends Model
     //
     protected $table = 'userLogin';
 
-    protected $fillable = ['id', 'username', 'password', 'roleid', 'name'];
+    protected $fillable = ['id', 'username', 'password', 'RoleId', 'name'];
 
 
     public function userRole() {
         $lib = 'App\Models\UserRole';
-        return $this->belongsTo($lib, 'roleid', 'roleid');
+        return $this->belongsTo($lib, 'RoleId', 'RoleId');
     }
 
     public function userProfile() {

@@ -9,7 +9,7 @@ class UserRole extends Model
     //
     protected $table = 'Role';
 
-    protected $fillable = ['roleid', 'roleName', 'desc'];
+    protected $fillable = ['RoleId', 'roleName', 'desc'];
 
     public function mergedUserLoginMerged() {
         $lib = 'App\Models\UserLogin';

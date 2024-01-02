@@ -86,12 +86,17 @@ return [
             'database' => env('DB_DATABASE', 'forge'),
             'username' => env('DB_USERNAME', 'forge'),
             'password' => env('DB_PASSWORD', ''),
-            'charset' => 'utf8',
-            'prefix' => '',
-            'prefix_indexes' => true,
+            'charset'   => env('DB_CHARSET', 'utf8'),
+            'collation' => env('DB_COLLATION', 'utf8_general_ci'),
+            'prefix'    => env('DB_PREFIX', ''),
+            'timezone'  => env('DB_TIMEZONE', '+00:00'),
+            'strict'    => env('DB_STRICT_MODE', false),
+	    'engine' => null,            
+	    'prefix_indexes' => true,
             'options' =>[
                 PDO::ATTR_CASE => PDO::CASE_LOWER,
-            ]
+            ],
+	    'strict' => false
             // 'encrypt' => env('DB_ENCRYPT', 'yes'),
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],

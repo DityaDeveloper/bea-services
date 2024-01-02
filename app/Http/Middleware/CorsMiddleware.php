@@ -15,25 +15,26 @@ class CorsMiddleware
      */
     public function handle($request, Closure $next)
     {
-        $headers = [
-            // 'Access-Control-Allow-Origin' => getenv('ACCESS_CONTROL_ALLOW_ORIGIN'),
-            // 'Access-Control-Allow-Methods' => getenv('ACCESS_CONTROL_ALLOW_METHODS'),
-            'Access-Control-Allow-Origin' => '*',
-            'Access-Control-Allow-Methods' => 'POST, GET, OPTIONS, PUT, DELETE, PATCH, PUT',
-            'Access-Control-Allow-Credentials' => 'true',
-            'Access-Control-Max-Age' => '86400',
-            'Access-Control-Allow-Headers' => 'Content-Type, Authorization, X-Requested-With'
-        ];
-
-        if ($request->isMethod('OPTIONS')) {
-            return response()->json('{"method":"OPTIONS"}', 200, $headers);
-        }
-
+       //Intercepts OPTIONS requests
+    if ($request->isMethod('OPTIONS')) {
+        $response = response('', 200);
+    } else {
+        // Pass the request to the next middleware
+	
         $response = $next($request);
-        foreach ($headers as $key => $value) {
-            $response->header($key, $value);
-        }
-
-        return $response;
     }
+
+    // Adds headers to the response
+    $response->header('Access-Control-Allow-Methods', 'HEAD, GET, POST, PUT, PATCH, DELETE');
+    $response->header('Access-Control-Allow-Headers', $request->header('Access-Control-Request-Headers'));
+    $response->header('Access-Control-Allow-Origin', '*');
+    $response->header('Access-Control-Expose-Headers', 'Location');
+    $response->header('Content-Type', 'application/json');
+
+
+    // Sends it
+   // return response()->json($response, 200, ['Content-Type' => 'application/json;charset=UTF-8', 'Charset' => 'utf-8'],
+   //     JSON_UNESCAPED_UNICODE);  
+	return $response;
+ }
 }

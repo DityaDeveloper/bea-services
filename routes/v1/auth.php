@@ -4,6 +4,10 @@
 /* login */
 $router->post('/login', [ 'as' => 'login', 'uses' => 'AuthController@login']);
 
+/* login */
+$router->get('/login/dummy', [ 'as' => 'logindummy', 'uses' => 'AuthController@loginDummy']);
+
+
 /* restrict route */
 $router->group(['middleware' => 'auth'], function () use ($router) {
 
